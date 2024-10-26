@@ -34,7 +34,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 # Download VADER lexicon
 nltk.download('vader_lexicon', quiet=True)
 
@@ -118,7 +117,7 @@ if 'sentiment_history' not in st.session_state:
 st.title("Sentiment-Aware ChatBot 🤖")
 
 # Enhanced CSS to include sentiment indicators
-st.markdown("""
+st.markdown(""" 
 <style>
 .user-message {
     background-color: #DCF8C6;
@@ -192,6 +191,8 @@ with st.sidebar:
         submit_button = st.form_submit_button(label='Send 📤')
 
 if submit_button and user_input:
+    # Analyze sentiment of the user input
+    user_sentiment_analysis = analyze_sentiment(user_input)
     # Add user message to conversation history
     st.session_state.conversation_history.append({
         "role": "user",
@@ -209,7 +210,7 @@ if submit_button and user_input:
         model_response = chat_completion.choices[0].message.content
         formatted_response = format_response(model_response)
         
-        # Analyze sentiment of the response
+        # Analyze sentiment of the bot response
         sentiment_analysis = analyze_sentiment(formatted_response)
         
         # Add bot message to conversation history
@@ -218,8 +219,9 @@ if submit_button and user_input:
             "content": formatted_response
         })
         
-        # Store sentiment separately
-        st.session_state.sentiment_history.append(sentiment_analysis)
+        # Store sentiment for both user and bot
+        st.session_state.sentiment_history.append(user_sentiment_analysis)  # User sentiment
+        st.session_state.sentiment_history.append(sentiment_analysis)  # Bot sentiment
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
@@ -229,13 +231,10 @@ with chat_container:
     sentiment_index = 0
     for i, message in enumerate(st.session_state.conversation_history):
         if message['role'] == 'user':
-            st.markdown(f'<div class="user-message">👤 You: {message["content"]}</div>',
-                       unsafe_allow_html=True)
-        else:
             sentiment = st.session_state.sentiment_history[sentiment_index]
-            st.markdown(
-                f'''<div class="bot-message">
-                    🤖 ChatBot: {message["content"]}
+            st.markdown(f'''
+                <div class="user-message">
+                    👤 You: {message["content"]}
                     <span class="sentiment-indicator" style="color: {sentiment['color']}">
                         <span class="sentiment-emoji">{sentiment['emoji']}</span>
                         {sentiment['category']} ({sentiment['scores']['compound']:.2f})
@@ -243,7 +242,20 @@ with chat_container:
                 </div>''',
                 unsafe_allow_html=True
             )
-            sentiment_index += 1
+            sentiment_index += 1  # Move to the next sentiment
+        else:
+            sentiment = st.session_state.sentiment_history[sentiment_index]
+            st.markdown(f'''
+                <div class="bot-message">
+                    🤖 Bot: {message["content"]}
+                    <span class="sentiment-indicator" style="color: {sentiment['color']}">
+                        <span class="sentiment-emoji">{sentiment['emoji']}</span>
+                        {sentiment['category']} ({sentiment['scores']['compound']:.2f})
+                    </span>
+                </div>''',
+                unsafe_allow_html=True
+            )
+            sentiment_index += 1  # Move to the next sentiment
 
-    # Add bottom spacing
-    st.markdown("<div style='margin-bottom:70px'></div>", unsafe_allow_html=True)
+# Add footer
+st.markdown("Made with ❤️ by Unicorn Day")
