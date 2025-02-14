@@ -11,7 +11,7 @@ with open('secret.txt') as f:
 groq_client = Groq(api_key=key)
 
 # Set the model to 70B
-MODEL = 'llama-3.1-70b-versatile'
+MODEL = 'llama-3.3-70b-versatile'
 
 # Initialize conversation history
 if 'conversation_history' not in st.session_state:
